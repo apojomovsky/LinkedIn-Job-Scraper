@@ -4,7 +4,11 @@
 /.venv/
 # Prevent accidental upload of login info
 /logins.csv
+# Ignore personal search config (use search_config.csv.example as template)
+/search_config.csv
 # Ignore backups and other versions of the db
 # E.g. linkedin_jobs.db.bak, linkedin_jobs_uk.db
 /linkedin_jobs_*.db
 /linkedin_jobs.db.*
+# Ignore exported CSVs
+/output/

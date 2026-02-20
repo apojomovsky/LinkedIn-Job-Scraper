@@ -1,3 +1,4 @@
+import os
 import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,7 +9,7 @@ import pandas as pd
 from scripts.helpers import strip_val, get_value_by_path
 
 
-BROWSER = 'edge'
+BROWSER = 'chrome'
 
 def create_session(email, password):
     if BROWSER == 'chrome':
@@ -20,9 +21,14 @@ def create_session(email, password):
     time.sleep(1)
     driver.find_element(By.ID, 'username').send_keys(email)
     driver.find_element(By.ID, 'password').send_keys(password)
-    driver.find_element(By.XPATH, '//*[@id="organic-div"]/form/div[3]/button').click()
+    driver.find_element(By.CSS_SELECTOR, "button[type='submit'].btn__primary--large").click()
     time.sleep(1)
-    input('Press ENTER after a successful login for "{}": '.format(email))
+    login_wait = os.environ.get('LOGIN_WAIT_SECONDS')
+    if login_wait:
+        print('Waiting {}s for login to complete for "{}"...'.format(login_wait, email))
+        time.sleep(int(login_wait))
+    else:
+        input('Press ENTER after a successful login for "{}": '.format(email))
     driver.get('https://www.linkedin.com/jobs/search/?')
     time.sleep(1)
     cookies = driver.get_cookies()
@@ -39,46 +45,91 @@ def get_logins(method):
     passwords = logins['passwords'].tolist()
     return emails, passwords
 
+_BASE_SEARCH_URL = (
+    'https://www.linkedin.com/voyager/api/voyagerJobsDashJobCards'
+    '?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-187'
+    '&count=100&q=jobSearch&query={query}&start=0'
+)
+
+def build_search_url(keywords=None, geo_urn=None, job_type=None, experience=None):
+    """Build a Voyager job search URL from filter parameters.
+
+    Args:
+        keywords:   Search terms, e.g. "data engineer" (spaces allowed)
+        geo_urn:    LinkedIn geoUrn ID (int). Common values:
+                      103644278=United States, 101165590=United Kingdom,
+                      101174742=Canada, 101282230=Germany, 90000084=Remote
+        job_type:   F=Full-time, P=Part-time, C=Contract, I=Internship, R=Remote
+        experience: 1=Internship, 2=Entry, 3=Associate, 4=Mid-Senior, 5=Director, 6=Executive
+    """
+    filters = ['sortBy:List(DD)']
+    if geo_urn and not pd.isna(geo_urn):
+        filters.append(f'geoUrn:List({int(geo_urn)})')
+    if job_type and not pd.isna(job_type):
+        filters.append(f'jobType:List({job_type})')
+    if experience and not pd.isna(experience):
+        filters.append(f'experience:List({int(experience)})')
+
+    query_parts = []
+    if keywords and not pd.isna(keywords):
+        encoded = str(keywords).strip().replace(' ', '%20')
+        query_parts.append(f'keywords:{encoded}')
+    query_parts.append('origin:JOB_SEARCH_PAGE_OTHER_ENTRY')
+    query_parts.append(f'selectedFilters:({",".join(filters)})')
+    query_parts.append('spellCorrectionEnabled:true')
+
+    query = '(' + ','.join(query_parts) + ')'
+    return _BASE_SEARCH_URL.format(query=query)
+
+
 class JobSearchRetriever:
     def __init__(self):
-        self.job_search_link = 'https://www.linkedin.com/voyager/api/voyagerJobsDashJobCards?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-187&count=100&q=jobSearch&query=(origin:JOB_SEARCH_PAGE_OTHER_ENTRY,selectedFilters:(sortBy:List(DD)),spellCorrectionEnabled:true)&start=0'
+        config = pd.read_csv('search_config.csv')
+        self.job_search_links = [
+            build_search_url(
+                keywords=row.get('keywords'),
+                geo_urn=row.get('geo_urn'),
+                job_type=row.get('job_type'),
+                experience=row.get('experience'),
+            )
+            for _, row in config.iterrows()
+        ]
+        print(f'Loaded {len(self.job_search_links)} search(es) from search_config.csv')
+
         emails, passwords = get_logins('search')
         self.sessions = [create_session(email, password) for email, password in zip(emails, passwords)]
         self.session_index = 0
         self.headers = [{
             'Authority': 'www.linkedin.com',
             'Method': 'GET',
-            'Path': 'voyager/api/voyagerJobsDashJobCards?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-187&count=25&q=jobSearch&query=(origin:JOB_SEARCH_PAGE_OTHER_ENTRY,selectedFilters:(sortBy:List(DD)),spellCorrectionEnabled:true)&start=0',
+            'Path': '/voyager/api/voyagerJobsDashJobCards',
             'Scheme': 'https',
             'Accept': 'application/vnd.linkedin.normalized+json+2.1',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'en-US,en;q=0.9',
             'Cookie': "; ".join([f"{key}={value}" for key, value in session.cookies.items()]),
             'Csrf-Token': session.cookies.get('JSESSIONID').strip('"'),
-            # 'TE': 'Trailers',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-            # 'X-Li-Track': '{"clientVersion":"1.12.7990","mpVersion":"1.12.7990","osName":"web","timezoneOffset":-7,"timezone":"America/Los_Angeles","deviceFormFactor":"DESKTOP","mpName":"voyager-web","displayDensity":1,"displayWidth":1920,"displayHeight":1080}'
             'X-Li-Track': '{"clientVersion":"1.13.5589","mpVersion":"1.13.5589","osName":"web","timezoneOffset":-7,"timezone":"America/Los_Angeles","deviceFormFactor":"DESKTOP","mpName":"voyager-web","displayDensity":1,"displayWidth":360,"displayHeight":800}'
         } for session in self.sessions]
 
     def get_jobs(self):
-        results = self.sessions[self.session_index].get(self.job_search_link, headers=self.headers[self.session_index])
-        self.session_index = (self.session_index + 1) % len(self.sessions)
-
-        if results.status_code != 200:
-            raise Exception('Status code {} for search\nText: {}'.format(results.status_code, results.text))
-        results = results.json()
         job_ids = {}
+        for link in self.job_search_links:
+            results = self.sessions[self.session_index].get(link, headers=self.headers[self.session_index])
+            self.session_index = (self.session_index + 1) % len(self.sessions)
 
-        for r in results['included']:
-            if r['$type'] == 'com.linkedin.voyager.dash.jobs.JobPostingCard' and 'referenceId' in r:
-                job_id = int(strip_val(r['jobPostingUrn'], 1))
-                job_ids[job_id] = {'sponsored': False}
-                job_ids[job_id]['title'] = r.get('jobPostingTitle')
-                for x in r['footerItems']:
-                    if x.get('type') == 'PROMOTED':
-                        job_ids[job_id]['sponsored'] = True
-                        break
+            if results.status_code != 200:
+                raise Exception('Status code {} for search\nText: {}'.format(results.status_code, results.text))
+
+            for r in results.json()['included']:
+                if r['$type'] == 'com.linkedin.voyager.dash.jobs.JobPostingCard' and 'referenceId' in r:
+                    job_id = int(strip_val(r['jobPostingUrn'], 1))
+                    job_ids[job_id] = {'sponsored': False, 'title': r.get('jobPostingTitle')}
+                    for x in r['footerItems']:
+                        if x.get('type') == 'PROMOTED':
+                            job_ids[job_id]['sponsored'] = True
+                            break
 
         return job_ids
 

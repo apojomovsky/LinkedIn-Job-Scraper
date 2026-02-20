@@ -12,6 +12,11 @@ def strip_val(val, cat):
         return val.split(':')[-1]
     elif cat == 2:
         return val.split('.')[-1]
+    elif cat == 3:
+        # For list fields: take the first element and split on ':' to get the trailing ID
+        if isinstance(val, list) and val:
+            return val[0].split(':')[-1]
+        return val
     else:
         raise ValueError
 

@@ -12,20 +12,17 @@ path,name,strip,dependencies,table
 ['data']['jobFunctions'],skill_abrs,0,,skills
 ['data']['formattedJobFunctions'],skill_name,0,,skills
 ['data']['expireAt'],expiry,0,,jobs
-['data']['inferredBenefits'],inferred_benefits,0,,benefits
 ['data']['industries'],industry_ids,0,,industries
 ['data']['formattedIndustries'],industry_names,0,,industries
-['data']['salaryInsights']['compensationBreakdown'],salary,0,,salaries
 ['data']['closedAt'],closed_time,0,,jobs
 ['data']['formattedExperienceLevel'],formatted_experience_level,0,,jobs
-['data']['yearsOfExperienceMatch'],years_experience,0,,jobs
-['data']['benefits'],listed_benefits,0,,benefits
 ['data']['description']['text'],description,0,,jobs
 ['data']['title'],title,0,,jobs
 ['data']['skillsDescription']['text'],skills_desc,0,,jobs
 ['data']['views'],views,0,,jobs
-['data']['jobRegion'],job_region,0,,jobs
 ['data']['listedAt'],listed_time,0,,jobs
-['data']['degreeMatches'],degree,0,,jobs
 ['data']['sourceDomain'],posting_domain,0,,jobs
+['data']['applicantTrackingSystem'],applicant_tracking_system,0,,jobs
+['data']['jobState'],job_state,0,,jobs
+['data']['workplaceTypes'],workplace_type,3,,jobs
 
