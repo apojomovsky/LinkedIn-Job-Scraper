@@ -47,8 +47,8 @@ def get_logins(method):
 
 _BASE_SEARCH_URL = (
     'https://www.linkedin.com/voyager/api/voyagerJobsDashJobCards'
-    '?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-187'
-    '&count=100&q=jobSearch&query={query}&start=0'
+    '?decorationId=com.linkedin.voyager.dash.deco.jobs.search.JobSearchCardsCollection-220'
+    '&count=25&q=jobSearch&query={query}&start=0'
 )
 
 def build_search_url(keywords=None, geo_urn=None, job_type=None, experience=None):
@@ -63,18 +63,17 @@ def build_search_url(keywords=None, geo_urn=None, job_type=None, experience=None
         experience: 1=Internship, 2=Entry, 3=Associate, 4=Mid-Senior, 5=Director, 6=Executive
     """
     filters = ['sortBy:List(DD)']
-    if geo_urn and not pd.isna(geo_urn):
-        filters.append(f'geoUrn:List({int(geo_urn)})')
     if job_type and not pd.isna(job_type):
         filters.append(f'jobType:List({job_type})')
     if experience and not pd.isna(experience):
         filters.append(f'experience:List({int(experience)})')
 
-    query_parts = []
+    query_parts = ['origin:JOB_SEARCH_PAGE_OTHER_ENTRY']
     if keywords and not pd.isna(keywords):
         encoded = str(keywords).strip().replace(' ', '%20')
         query_parts.append(f'keywords:{encoded}')
-    query_parts.append('origin:JOB_SEARCH_PAGE_OTHER_ENTRY')
+    if geo_urn and not pd.isna(geo_urn):
+        query_parts.append(f'locationUnion:(geoId:{int(geo_urn)})')
     query_parts.append(f'selectedFilters:({",".join(filters)})')
     query_parts.append('spellCorrectionEnabled:true')
 
