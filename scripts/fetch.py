@@ -5,6 +5,9 @@ from selenium.webdriver.common.by import By
 import time
 import requests
 import pandas as pd
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from scripts.helpers import strip_val, get_value_by_path
 
@@ -39,10 +42,9 @@ def create_session(email, password):
     return session
 
 def get_logins(method):
-    logins = pd.read_csv('logins.csv')
-    logins = logins[logins['method'] == method]
-    emails = logins['emails'].tolist()
-    passwords = logins['passwords'].tolist()
+    key = method.upper()
+    emails = [e.strip() for e in os.environ[f'{key}_EMAILS'].split(',')]
+    passwords = [p.strip() for p in os.environ[f'{key}_PASSWORDS'].split(',')]
     return emails, passwords
 
 _BASE_SEARCH_URL = (

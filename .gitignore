@@ -4,6 +4,7 @@
 /.venv/
 # Prevent accidental upload of login info
 /logins.csv
+/.env
 # Ignore personal search config (use search_config.csv.example as template)
 /search_config.csv
 # Ignore the database and any variants/backups
