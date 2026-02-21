@@ -57,25 +57,6 @@ conn.close()
 jobs = pd.read_csv(f'{folder_name}/jobs.csv')
 jobs = jobs[jobs['scraped'] > 0]
 
-salaries = pd.read_csv(f'{folder_name}/salaries.csv')
-salaries.drop(columns='salary_id', inplace=True)
-
-merged_df = pd.merge(jobs, salaries, on='job_id', how='left')
-
-# merged_df = merged_df.drop(columns='scraped')
-
-col = ['job_id', 'company_id', 'title', 'description', 'max_salary', 'med_salary', 'min_salary', 'pay_period',
-       'formatted_work_type', 'location',
-       'applies', 'original_listed_time', 'remote_allowed', 'views','job_posting_url',
-       'application_url', 'application_type', 'expiry',
-       'closed_time', 'formatted_experience_level',
-       'skills_desc',
-       'listed_time', 'posting_domain', 'sponsored', 'work_type',
-       'currency',
-       'compensation_type', 'scraped']
-
-merged_df = merged_df[col]
-
-merged_df.to_csv(f'{folder_name}/job_postings.csv', index=False)
+jobs.to_csv(f'{folder_name}/job_postings.csv', index=False)
 
 os.remove(f"{folder_name}/jobs.csv")
