@@ -62,7 +62,7 @@ def build_search_url(keywords=None, geo_urn=None, job_type=None, experience=None
         job_type:   F=Full-time, P=Part-time, C=Contract, I=Internship, R=Remote
         experience: 1=Internship, 2=Entry, 3=Associate, 4=Mid-Senior, 5=Director, 6=Executive
     """
-    filters = ['sortBy:List(DD)']
+    filters = []
     if job_type and not pd.isna(job_type):
         filters.append(f'jobType:List({job_type})')
     if experience and not pd.isna(experience):
@@ -74,7 +74,8 @@ def build_search_url(keywords=None, geo_urn=None, job_type=None, experience=None
         query_parts.append(f'keywords:{encoded}')
     if geo_urn and not pd.isna(geo_urn):
         query_parts.append(f'locationUnion:(geoId:{int(geo_urn)})')
-    query_parts.append(f'selectedFilters:({",".join(filters)})')
+    if filters:
+        query_parts.append(f'selectedFilters:({",".join(filters)})')
     query_parts.append('spellCorrectionEnabled:true')
 
     query = '(' + ','.join(query_parts) + ')'
