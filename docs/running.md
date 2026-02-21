@@ -16,7 +16,7 @@ Both scripts connect to (or create) `linkedin_jobs.db` in the current directory.
 
 ## First-Run Login
 
-Each script opens a browser window for every account in `logins.csv` (filtered by `method`). For each account:
+Each script opens a browser window for every account in `.env` (search or details accounts). For each account:
 
 1. The browser navigates to LinkedIn sign-in
 2. Credentials are entered automatically
@@ -66,17 +66,10 @@ python to_csv.py --folder ./output --database linkedin_jobs.db
 
 This creates:
 - One `.csv` file per table (e.g. `companies.csv`, `benefits.csv`, `skills.csv`, etc.)
-- A merged `job_postings.csv` that joins `jobs` + `salaries` (only rows with `scraped > 0`)
+- A merged `job_postings.csv` (only rows with `scraped > 0`)
 - Removes the raw `jobs.csv` after creating the merged file
 
-Output columns in `job_postings.csv`:
-```
-job_id, company_id, title, description, max_salary, med_salary, min_salary, pay_period,
-formatted_work_type, location, applies, original_listed_time, remote_allowed, views,
-job_posting_url, application_url, application_type, expiry, closed_time,
-formatted_experience_level, skills_desc, listed_time, posting_domain, sponsored,
-work_type, currency, compensation_type, scraped
-```
+Output columns in `job_postings.csv` match the `jobs` table schema.
 
 ## Handling Errors & Rate Limiting
 
@@ -84,7 +77,7 @@ work_type, currency, compensation_type, scraped
 This usually means the account/IP is rate-limited. Strategies:
 - Reduce `MAX_UPDATES` 
 - Increase `SLEEP_TIME`
-- Add more `details` accounts to `logins.csv`
+- Add more details accounts to `.env` (`DETAILS_EMAILS`, `DETAILS_PASSWORDS` as comma-separated lists)
 - Run during off-peak hours (late night, weekends)
 - Add proxies (see [setup.md](setup.md))
 

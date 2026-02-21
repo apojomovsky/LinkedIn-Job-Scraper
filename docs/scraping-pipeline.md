@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart TD
-    A([Start]) --> B[Load logins.csv]
+    A([Start]) --> B[Load credentials from .env]
     B --> C[Selenium login per account]
     C --> D[Capture session cookies → requests.Session]
     D --> E{Which script?}

@@ -37,30 +37,30 @@ pip install -r requirements.txt
 
 Requires **Python 3.8+** and **Google Chrome** (ChromeDriver is managed automatically by Selenium).
 
-### 2. Configure your LinkedIn accounts — `logins.csv`
+### 2. Configure your LinkedIn credentials — `.env`
 
-Copy the template and fill in your credentials:
+Copy the example file and fill in your credentials:
 
 ```bash
-cp logins.csv.template logins.csv
+cp .env.example .env
 ```
 
-```csv
-emails,passwords,method
-your_email@gmail.com,your_password,search
-your_email@gmail.com,your_password,details
+```ini
+SEARCH_EMAILS=your_email@gmail.com
+SEARCH_PASSWORDS=your_password
+
+DETAILS_EMAILS=your_email@gmail.com
+DETAILS_PASSWORDS=your_password
 ```
 
-The `method` column controls which script uses each account:
+The same account can be used for both. For higher throughput on the details side, add multiple accounts as comma-separated values:
 
-| Value | Used by |
-|---|---|
-| `search` | `search_retriever.py` |
-| `details` | `details_retriever.py` |
+```ini
+DETAILS_EMAILS=account1@gmail.com,account2@gmail.com
+DETAILS_PASSWORDS=password1,password2
+```
 
-The same account can be used for both. For higher throughput and lower ban risk on the details side, add more `details` accounts — one row per account.
-
-> `logins.csv` is gitignored. Never commit it.
+> `.env` is gitignored. Never commit it. Use `.env.example` as the committed template.
 
 ### 3. Configure your searches — `search_config.csv`
 
@@ -176,15 +176,10 @@ MAX_UPDATES = 25   # jobs to fetch per batch — increase with more accounts
 
 | Table | What it holds |
 |---|---|
-| `companies` | Name, description, size, HQ location, LinkedIn URL |
-| `employee_counts` | Headcount + follower snapshots over time |
-| `salaries` | Min/med/max salary, pay period, currency (when LinkedIn provides it) |
-| `benefits` | Listed and inferred benefits (401K, medical, etc.) |
+| `companies` | Name, country, LinkedIn URL |
 | `skills` / `job_skills` | LinkedIn job function categories per job |
 | `industries` / `job_industries` | Industry tags per job |
 | `company_industries` / `company_specialities` | Company-level industry and speciality tags |
-
-> Fields marked as rarely populated in practice: `years_experience`, `job_region`, `degree`, `salary` (LinkedIn surfaces salary data for <10% of postings).
 
 ---
 
@@ -194,7 +189,7 @@ MAX_UPDATES = 25   # jobs to fetch per batch — increase with more accounts
 python to_csv.py --folder ./output --database linkedin_jobs.db
 ```
 
-Creates one CSV per table plus a merged `job_postings.csv` (jobs + salaries joined, only fully-scraped rows).
+Creates one CSV per table plus a merged `job_postings.csv` (only fully-scraped rows).
 
 ---
 

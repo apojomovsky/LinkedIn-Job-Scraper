@@ -17,7 +17,7 @@ graph TD
     E --> F[job_postings.csv + per-table CSVs]
 
     subgraph Authentication
-        G[logins.csv] -->|search accounts| B
+        G[.env] -->|search accounts| B
         G -->|details accounts| C
         H[Selenium browser login] -->|session cookies| B
         H -->|session cookies| C
@@ -71,7 +71,7 @@ sequenceDiagram
         DR->>LI: GET jobPostings/{id} × MAX_UPDATES
         LI-->>DR: Full job JSON per ID
         DR->>DR: clean_job_postings() — parse via json_paths CSVs
-        DR->>DB: UPDATE jobs + INSERT into salaries, benefits,\ncompanies, skills, industries, employee_counts
+        DR->>DB: UPDATE jobs + INSERT into\ncompanies, skills, industries
     end
 ```
 

@@ -30,7 +30,7 @@ LinkedIn Job Scraper — continuously scrapes LinkedIn job postings using Linked
 | `scripts/create_db.py` | Schema creation (idempotent `CREATE TABLE IF NOT EXISTS`) |
 | `json_paths/data_variables.csv` | Maps Voyager API JSON paths → DB columns (top-level `data`) |
 | `json_paths/included_variables.csv` | Maps Voyager API JSON paths → DB columns (`included` array) |
-| `logins.csv` | LinkedIn credentials (not committed — use `logins.csv.template`) |
+| `.env` | LinkedIn credentials (not committed — use `.env.example` as template) |
 
 ## Agent Notes
 

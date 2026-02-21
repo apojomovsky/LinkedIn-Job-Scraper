@@ -3,10 +3,7 @@
 ## Prerequisites
 
 - Python 3.8+
-- **Microsoft Edge** browser (default) **or** Google Chrome
-- Matching WebDriver:
-  - Edge: [Microsoft Edge WebDriver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)
-  - Chrome: [ChromeDriver](https://chromedriver.chromium.org/)
+- **Google Chrome** browser
 - One or more LinkedIn accounts
 
 ## Installation
@@ -20,46 +17,50 @@ Dependencies:
 |---|---|
 | `selenium>=4.14.0` | Browser automation for initial login |
 | `requests>=2.31.0` | All API calls after login |
-| `pandas>=2.1.1` | CSV loading, data handling |
+| `pandas>=2.1.1` | Data handling |
+| `python-dotenv>=1.0.0` | Load credentials from `.env` |
 
 ## Browser Configuration
 
-By default, the scraper uses **Microsoft Edge**. To switch to Chrome, edit `scripts/fetch.py` line 11:
+Chrome is used by default. ChromeDriver is managed automatically by Selenium — no manual installation needed.
 
-```python
-BROWSER = 'chrome'   # was 'edge'
-```
+## Account Setup (`.env`)
 
-## Account Setup (`logins.csv`)
-
-Copy the template and fill in real credentials:
+Copy the example and fill in your credentials:
 
 ```bash
-cp logins.csv.template logins.csv
+cp .env.example .env
 ```
 
-Format:
-```csv
-emails,passwords,method
-search_account@gmail.com,password1,search
-details_account1@gmail.com,password2,details
-details_account2@gmail.com,password3,details
+```ini
+SEARCH_EMAILS=your_email@gmail.com
+SEARCH_PASSWORDS=your_password
+
+DETAILS_EMAILS=your_email@gmail.com
+DETAILS_PASSWORDS=your_password
 ```
 
-### Account Roles
+### Multiple accounts
 
-| Method | Usage | Recommended Count |
+For higher throughput, use comma-separated values:
+
+```ini
+DETAILS_EMAILS=account1@gmail.com,account2@gmail.com
+DETAILS_PASSWORDS=password1,password2
+```
+
+| Variable | Used by | Recommended count |
 |---|---|---|
-| `search` | Polls the job search feed | 1–3 |
-| `details` | Fetches full data per job ID | As many as possible |
+| `SEARCH_EMAILS` / `SEARCH_PASSWORDS` | `search_retriever.py` | 1–3 |
+| `DETAILS_EMAILS` / `DETAILS_PASSWORDS` | `details_retriever.py` | As many as possible |
 
-Details fetching is far more API-intensive (one HTTP call per job). More `details` accounts = higher throughput and lower per-account ban risk.
+Details fetching is far more API-intensive (one HTTP call per job). More accounts = higher throughput and lower per-account ban risk.
 
-> **Security note:** `logins.csv` is in `.gitignore`. Never commit it.
+> **Security note:** `.env` is in `.gitignore`. Never commit it. Commit `.env.example` instead.
 
 ## Login Flow
 
-On first run of each script, Selenium opens a real browser window for each account in `logins.csv`:
+On first run of each script, Selenium opens a real browser window for each account in `.env`:
 
 1. Browser navigates to LinkedIn sign-in
 2. Credentials are typed automatically
